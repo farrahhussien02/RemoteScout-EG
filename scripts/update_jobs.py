@@ -172,7 +172,7 @@ def country_is_eligible(value):
         return False, "Egypt excluded"
     if EGYPT.search(text_value):
         return True, "Egypt listed"
-    if re.search(r"\\b(worldwide|global|all countries|any country)\\b", text_value, re.I):
+    if re.search(r"\b(worldwide|global|all countries|any country)\b", text_value, re.I):
         return True, "Worldwide listed"
     if AFRICA.search(text_value):
         return True, "Africa listed"
