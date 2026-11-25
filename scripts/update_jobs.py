@@ -141,6 +141,117 @@ def fetch_wwr():
         if item: out.append(item)
     return out
 
+
+# Public AI-training listings feed, reusable under CC BY 4.0 with attribution.
+AI_PROJECT_PLATFORM_MATCH = {
+    "meridial": "Meridial",
+    "alignerr": "Alignerr",
+    "oneforma": "OneForma",
+    "outlier": "Outlier",
+    "rws": "RWS TrainAI",
+    "dataforce": "DataForce",
+    "appen": "CrowdGen by Appen",
+    "crowdgen": "CrowdGen by Appen",
+    "mindrift": "Mindrift",
+    "telus": "TELUS Digital AI Community",
+}
+
+def first_value(obj, *keys):
+    for key in keys:
+        value = obj.get(key)
+        if value not in (None, "", [], {}):
+            return value
+    return None
+
+def country_is_eligible(value):
+    text_value = ", ".join(str(x) for x in value) if isinstance(value, list) else str(value or "")
+    text_value = clean_text(text_value)
+    if not text_value.strip():
+        return False, "Country eligibility not disclosed"
+    if EXCLUSIONS.search(text_value):
+        return False, "Egypt excluded"
+    if EGYPT.search(text_value):
+        return True, "Egypt listed"
+    if re.search(r"\\b(worldwide|global|all countries|any country)\\b", text_value, re.I):
+        return True, "Worldwide listed"
+    if AFRICA.search(text_value):
+        return True, "Africa listed"
+    return False, "Egypt not listed"
+
+def fetch_ai_training_projects():
+    out, offset, total = [], 0, None
+    while total is None or offset < total:
+        data = get_json("https://aitrainer.work/api/jobs.json",
+                        {"limit": 500, "offset": offset, "compact": 1})
+        if isinstance(data, list):
+            rows = data
+            total = len(rows)
+        else:
+            rows = data.get("jobs") or data.get("results") or data.get("data") or []
+            total = int(data.get("total", len(rows)))
+        if not rows:
+            break
+        for j in rows:
+            if not isinstance(j, dict):
+                continue
+            platform_raw = str(first_value(j, "platform", "platform_name", "source") or "").lower()
+            platform_name = next((name for key, name in AI_PROJECT_PLATFORM_MATCH.items() if key in platform_raw.replace(" ", "").replace("-", "")), None)
+            if not platform_name:
+                continue
+            countries = first_value(j, "eligible_countries", "eligibleCountries", "countries", "locations", "location")
+            ok, eligibility = country_is_eligible(countries)
+            if not ok:
+                continue
+            first_seen = iso_date(first_value(j, "first_seen", "firstSeen", "first_seen_at"))
+            last_seen = iso_date(first_value(j, "last_seen", "lastSeen", "last_seen_at"))
+            # "First seen" is the feed's observation date, not necessarily the employer's
+            # publication date. Require recent observation and a recent open-status check.
+            if not first_seen or first_seen < NOW - dt.timedelta(days=7):
+                continue
+            if not last_seen or last_seen < NOW - dt.timedelta(days=2):
+                continue
+            published = iso_date(first_value(j, "published_at", "publication_date", "posted_at", "date_posted"))
+            if published and published < NOW - dt.timedelta(days=30):
+                continue
+            title = first_value(j, "title", "job_title", "name")
+            company = first_value(j, "company", "company_name", "employer") or platform_name
+            url = first_value(j, "url", "job_url", "link")
+            if not title or not url or "aitrainer.work" not in urlparse(str(url)).netloc.lower():
+                continue
+            country_text = ", ".join(countries) if isinstance(countries, list) else str(countries or "")
+            applicants = first_value(j, "applicant_count", "applicants", "applications_count")
+            out.append({
+                "id": str(first_value(j, "id", "job_id") or url),
+                "title": clean_text(title).strip(),
+                "company_name": clean_text(company).strip(),
+                "url": str(url),
+                "candidate_required_location": clean_text(country_text),
+                "description": str(first_value(j, "description", "summary", "excerpt") or ""),
+                "publication_date": published.isoformat() if published else "",
+                "first_seen": first_seen.isoformat(),
+                "last_seen": last_seen.isoformat(),
+                "category": clean_text(first_value(j, "domain", "field", "category") or "AI training"),
+                "job_type": clean_text(first_value(j, "contract_type", "job_type", "type") or "contract"),
+                "salary": clean_text(first_value(j, "pay_text", "salary", "rate") or ""),
+                "source": platform_name,
+                "source_url": "https://aitrainer.work/open-data",
+                "eligibility": eligibility,
+                "applicant_count": applicants if isinstance(applicants, (int, float)) else None,
+                "competition_note": "Applicant count not disclosed" if applicants is None else "Applicant count supplied by source",
+                "link_status": "source_feed"
+            })
+        offset = data.get("next_offset") if isinstance(data, dict) and data.get("next_offset") is not None else offset + len(rows)
+        if not rows or offset <= 0:
+            break
+        if total is not None and offset >= total:
+            break
+        time.sleep(1.5)
+    try:\n        project_jobs = fetch_ai_training_projects()\n        print("AI training project feed: %s fresh Egypt-eligible listings" % len(project_jobs))\n    except Exception as exc:\n        errors.append({"source":"AI training project feed","error":str(exc)[:240]})\n        print("AI training project feed failed: %s" % exc)\n        deduped = {}
+    for item in out:
+        key = item["url"].split("?")[0].rstrip("/").lower()
+        deduped[key] = item
+    return list(deduped.values())
+
 def check_link(job):
     try:
         r = requests.get(job["url"], headers=HEADERS, timeout=12, allow_redirects=True, stream=True)
@@ -164,7 +275,7 @@ def main():
         {"name":"Jobicy","url":"https://jobicy.com/","api":"https://jobicy.com/jobs-rss-feed","note":"Public worldwide remote-jobs API; worldwide eligibility is checked against listing text."},
         {"name":"We Work Remotely","url":"https://weworkremotely.com/","api":"https://weworkremotely.com/remote-job-rss-feed","note":"Official public RSS; only explicit Egypt, Africa, or worldwide locations are included."}
     ]
-    collected, errors = [], []
+    collected, errors = [], []\n    project_jobs = []
     for name, fn in [("Himalayas", fetch_himalayas), ("Jobicy", fetch_jobicy), ("We Work Remotely", fetch_wwr)]:
         try:
             batch = fn()
@@ -185,7 +296,7 @@ def main():
     payload = {
         "updated_at": NOW.isoformat(), "timezone": "UTC",
         "job_count": len(checked), "sources": sources,
-        "jobs": checked,
+        "jobs": checked,\n        "project_job_count": len(project_jobs), "project_jobs": project_jobs,\n        "project_feed_attribution": "AI training listings from aitrainer.work/open-data, licensed under CC BY 4.0.",
         "update_note": "Automatically refreshed daily. Listings are re-read from their sources; expired, missing, broken, and explicitly Egypt-excluding listings are removed.",
         "source_errors": errors
     }
