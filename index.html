@@ -116,28 +116,35 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const dateLabel=s=>{const d=new Date(s);return isNaN(d)?'Recently posted':d.toLocaleDateString(undefined,{day:'numeric',month:'short'})};
 function jobCategory(j){
  const title=String(j.title||'').toLowerCase();
- const raw=String(j.category||'').toLowerCase();
- const text=title+' '+raw;
- if(/customer support|customer service|customer success|customer experience|client success|client services|technical support|help ?desk|service desk|call center|call centre|support agent|support specialist/.test(text))return 'Customer Support';
- if(/marketing|growth|seo|social media|content|communications|public relations|brand|copywriter|editor|paid media|demand generation/.test(title))return 'Marketing & Content';
- if(/sales|account executive|business development|partnership|lead generation|appointment setter/.test(title))return 'Sales & Business Development';
+ const raw=String(j.category||'').trim().toLowerCase();
+ if(/customer support|customer service|customer success|customer experience|customer care|client success|client services|technical support|help ?desk|service desk|support agent|support specialist|chat agent|call cent(er|re)/.test(title))return 'Customer Support';
+ if(/quality assurance|quality control|\bqa\b|software test|testing engineer/.test(title))return 'Quality Assurance & Testing';
  if(/artificial intelligence|\bai\b|machine learning|\bml\b|llm|data annotat|data label|ai trainer|ai evaluat|prompt engineer/.test(title))return 'AI & Data Training';
- if(/data scientist|data analyst|data engineer|analytics|business intelligence|\bbi analyst\b/.test(title))return 'Data & Analytics';
- if(/software|developer|engineer|programmer|frontend|backend|full.?stack|web developer|mobile developer/.test(title))return 'Software Engineering';
- if(/devops|cloud|infrastructure|site reliability|systems administrator|network engineer|it support|security|cybersecurity/.test(title))return 'IT & Infrastructure';
- if(/designer|design|creative|illustrat|photograph|video editor|videographer|animator/.test(title))return 'Design & Creative';
+ if(/marketing|growth|seo|social media|content|communications|public relations|brand|copywriter|editor|paid media|demand generation|creative strategist/.test(title))return 'Marketing & Content';
+ if(/sales|account executive|business development|partnership|lead generation|appointment setter|acquisition executive/.test(title))return 'Sales & Business Development';
+ if(/data scientist|data analyst|data engineer|data architect|analytics|business intelligence|market intelligence/.test(title))return 'Data & Analytics';
+ if(/software|developer|programmer|frontend|front-end|backend|back-end|full.?stack|web developer|mobile developer|blockchain developer/.test(title))return 'Software Engineering';
+ if(/devops|cloud|infrastructure|site reliability|systems administrator|network engineer|it support|security|cybersecurity|linux|database administrator/.test(title))return 'IT & Infrastructure';
+ if(/designer|design|illustrat|photograph|video editor|videographer|animator|creative director/.test(title))return 'Design & Creative';
  if(/product manager|product owner|project manager|program manager|product operations/.test(title))return 'Product & Project Management';
- if(/finance|accountant|accounting|bookkeeper|financial analyst|payroll/.test(title))return 'Finance & Accounting';
+ if(/finance|accountant|accounting|bookkeeper|financial analyst|payroll|investment/.test(title))return 'Finance & Accounting';
  if(/recruit|talent acquisition|human resources|\bhr\b|people operations/.test(title))return 'HR & Recruiting';
- if(/teacher|tutor|instructor|education|research|scientist|linguist|translator|translation|localization|localisation/.test(title))return 'Education, Research & Language';
- if(/legal|attorney|lawyer|counsel|compliance|regulatory/.test(title))return 'Legal & Compliance';
+ if(/teacher|tutor|instructor|education|research|scientist|linguist|translator|translation|localization|localisation|learning & development/.test(title))return 'Education, Research & Language';
+ if(/legal|attorney|lawyer|counsel|compliance|regulatory|paralegal/.test(title))return 'Legal & Compliance';
  if(/health|medical|clinical|physician|nurse|doctor/.test(title))return 'Healthcare';
+ if(/mechanical|aerospace|electrical|civil engineer|hardware|manufacturing|robotics|aerodynamics|simulation|\bcnc\b|\bcad\b|semiconductor|engineering expert/.test(title))return 'Engineering & Hardware';
  if(/operations|administrative|executive assistant|virtual assistant|office manager|coordinator/.test(title))return 'Operations & Administration';
- if(/marketing/.test(raw))return 'Marketing & Content';
- if(/customer|support|success/.test(raw))return 'Customer Support';
- if(/software|engineering|developer/.test(raw))return 'Software Engineering';
- if(/\bai\b|machine.learning|annotation|data.label/.test(raw))return 'AI & Data Training';
- if(/sales|business.development/.test(raw))return 'Sales & Business Development';
+ if(/consultant|consulting|strategy|strategist/.test(title))return 'Consulting & Strategy';
+ if(raw.length<55){
+  if(/customer support|customer service|customer success|technical support/.test(raw))return 'Customer Support';
+  if(/marketing|content & editorial/.test(raw))return 'Marketing & Content';
+  if(/sales|business development/.test(raw))return 'Sales & Business Development';
+  if(/software engineering/.test(raw))return 'Software Engineering';
+  if(/devops & infrastructure|technical support/.test(raw))return 'IT & Infrastructure';
+  if(/qa & testing/.test(raw))return 'Quality Assurance & Testing';
+  if(/project & program management/.test(raw))return 'Product & Project Management';
+  if(/admin & virtual assistance|product & operations/.test(raw))return 'Operations & Administration';
+ }
  return 'Other';
 }
 function renderJobCard(j){
