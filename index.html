@@ -16,6 +16,9 @@ a{color:inherit}.wrap{max-width:1120px;margin:auto;padding:28px 22px 60px}.top{d
 .filters{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:10px;margin:12px 0 18px}.field{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 12px}.field label{display:block;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}.field select{width:100%;margin-top:4px;background:transparent;border:0;color:var(--text);font:inherit;outline:none}.field option{background:var(--panel)}
 .checkrow{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:13px;margin:7px 0 24px}.checkrow input{accent-color:var(--mint);width:16px;height:16px}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:26px 0 13px}.bar h2{font-size:20px;margin:0}.bar span{color:var(--muted);font-size:13px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.card{background:linear-gradient(145deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:17px;padding:18px;display:flex;flex-direction:column;min-height:225px}.cardtop{display:flex;justify-content:space-between;gap:12px}.company{color:var(--mint);font-size:12px;font-weight:800}.posted{color:var(--muted);font-size:11px;white-space:nowrap}.card h3{font-size:18px;line-height:1.25;margin:9px 0 5px}.meta{color:var(--muted);font-size:13px}.tags{display:flex;flex-wrap:wrap;gap:6px;margin:13px 0}.tag{font-size:11px;border:1px solid var(--line);padding:4px 8px;border-radius:999px;color:#d5e2da}.tag.good{color:var(--mint);border-color:#477b61}.tag.caution{color:var(--warn);border-color:#705e39}.cardfoot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:12px}.salary{font-size:12px;color:var(--muted)}.apply{font-size:12px;font-weight:800;text-decoration:none;color:#10231c;background:var(--lime);padding:9px 12px;border-radius:10px}.platform-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0 28px}.platform-card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px;display:flex;flex-direction:column;gap:8px}.platform-card h3{font-size:16px;margin:0}.platform-card p{font-size:13px;color:var(--muted);margin:0}.platform-status{font-size:11px;color:var(--mint);font-weight:700}.platform-card a{margin-top:auto;display:inline-block;padding-top:6px;color:var(--lime);font-size:12px;font-weight:800;text-decoration:none}@media(max-width:700px){.platform-grid{grid-template-columns:1fr 1fr}}@media(max-width:430px){.platform-grid{grid-template-columns:1fr}}.project-note{color:var(--muted);font-size:12px;margin:0 0 14px}.project-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-bottom:24px}.project-meta{color:var(--muted);font-size:12px;margin-top:8px}.project-apply{display:inline-block;margin-top:auto;padding:9px 12px;border-radius:10px;background:var(--lime);color:#10231c;font-size:12px;font-weight:800;text-decoration:none}.project-card{min-height:210px}@media(max-width:700px){.project-grid{grid-template-columns:1fr}}.state{background:var(--panel);border:1px dashed var(--line);border-radius:16px;padding:28px;text-align:center;color:var(--muted);grid-column:1/-1}.state strong{display:block;color:var(--text);font-size:16px;margin-bottom:5px}.notice{margin-top:25px;border:1px solid #665735;background:#2a2518;color:#e9d9ae;border-radius:13px;padding:13px 15px;font-size:12px}.footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:28px}.footer a{color:var(--mint)}
+
+.category-section{scroll-margin-top:22px;margin:30px 0 38px}.category-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 13px}.category-heading h2{font-size:23px;line-height:1.2;margin:0}.category-heading span{color:var(--muted);font-size:13px}.show-more-wrap{display:flex;justify-content:center;margin:16px 0 0}.show-more-btn{background:var(--panel);color:var(--mint);border:1px solid var(--line);border-radius:999px;padding:10px 18px;font:inherit;font-weight:800;cursor:pointer}.show-more-btn:hover,.show-more-btn:focus-visible{border-color:var(--mint);outline:none}.next-category-nav{position:fixed;right:18px;top:48%;z-index:20;display:flex;align-items:center;gap:8px;background:var(--mint);color:#10231c;border:0;border-radius:999px;padding:12px 16px;font:inherit;font-size:13px;font-weight:900;box-shadow:0 8px 28px #0008;cursor:pointer}.next-category-nav:hover,.next-category-nav:focus-visible{background:var(--lime);outline:3px solid #a8e6c255}.next-category-nav[hidden]{display:none}
+@media(max-width:700px){.next-category-nav{right:12px;top:auto;bottom:18px;padding:11px 14px}.category-heading h2{font-size:21px}}
 @media(max-width:700px){.wrap{padding:19px 15px 42px}.hero{padding:42px 0 20px}.filters{grid-template-columns:1fr 1fr}.filters .field:first-child{grid-column:1/-1}.grid{grid-template-columns:1fr}.searchbox{flex-wrap:wrap}.searchbox button{width:100%}.bar{align-items:flex-start;flex-direction:column}}
 </style>
 </head>
@@ -31,7 +34,8 @@ a{color:inherit}.wrap{max-width:1120px;margin:auto;padding:28px 22px 60px}.top{d
 </div>
 <label class="checkrow"><input type="checkbox" id="egyptOnly" checked> Only show jobs confirmed as eligible for applicants in Egypt</label>
 <div class="bar"><h2>Remote opportunities</h2><span id="count">Loading jobs…</span></div>
-<section class="grid" id="jobs" aria-live="polite"><div class="state"><strong>Finding fresh opportunities…</strong>Connecting to the remote jobs feed.</div></section>
+<button class="next-category-nav" id="nextCategoryBtn" type="button" aria-label="Go to the next job category" hidden>Next category <span aria-hidden="true">↓</span></button>
+<div class="category-list" id="jobs" aria-live="polite"><div class="state"><strong>Finding fresh opportunities…</strong>Connecting to the remote jobs feed.</div></div>
 <section aria-labelledby="featuredBoardsTitle">
 <div class="bar"><h2 id="featuredBoardsTitle">Open roles from additional job boards</h2><span>4 listings · checked 25 Nov 2026</span></div>
 <p class="project-note">These vacancies were found on the job boards listed below and show Egypt, Africa, or global remote eligibility. “Remote” alone is not enough. Confirm the employer’s current location and work-authorization requirements on the application page before applying.</p>
@@ -105,10 +109,16 @@ a{color:inherit}.wrap{max-width:1120px;margin:auto;padding:28px 22px 60px}.top{d
 </div>
 <script>
 const DATA_URL='./jobs.json';
-const jobsEl=document.getElementById('jobs'),countEl=document.getElementById('count');
+const jobsEl=document.getElementById('jobs'),countEl=document.getElementById('count'),nextCategoryBtn=document.getElementById('nextCategoryBtn');
 let allJobs=[],allProjectJobs=[],updatedAt=null;
+const expandedCategories=new Set();
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dateLabel=s=>{const d=new Date(s);return isNaN(d)?'Recently posted':d.toLocaleDateString(undefined,{day:'numeric',month:'short'})};
+function renderJobCard(j){
+ const loc=j.candidate_required_location||'Location not specified',salary=j.salary||'Salary not provided';
+ const sourceUrl=j.source_url||j.url,source=j.source||'Job source',tag=j.eligibility||'Location eligibility checked';
+ return '<article class="card"><div class="cardtop"><span class="company">'+esc(j.company_name)+'</span><span class="posted">'+dateLabel(j.publication_date)+'</span></div><h3>'+esc(j.title)+'</h3><div class="meta">'+esc(loc)+'</div><div class="tags"><span class="tag">'+esc(j.category||'Remote')+'</span><span class="tag">'+esc((j.job_type||'').replace('_',' ')||'Job type not listed')+'</span><span class="tag good">'+esc(tag)+'</span></div><div class="meta">Source: <a href="'+esc(sourceUrl)+'" target="_blank" rel="noopener">'+esc(source)+'</a> · Link checked: '+(j.link_status==='checked'?'yes':'limited')+'</div><div class="cardfoot"><span class="salary">'+esc(salary)+'</span><a class="apply" href="'+esc(j.url)+'" target="_blank" rel="noopener">Apply / details ↗</a></div></article>';
+}
 function render(){
  const q=document.getElementById('q').value.trim().toLowerCase(),cat=document.getElementById('category').value,type=document.getElementById('type').value,only=document.getElementById('egyptOnly').checked,sort=document.getElementById('sort').value;
  const aliases={'translation':['translator','translation','localization','localisation','linguist','arabic'],'transcription':['transcription','transcriber','captioning','subtitling'],'captioning':['caption','subtitling','subtitle'],'clipping':['video editor','short-form video','video clipping','content editor']};
@@ -119,16 +129,37 @@ function render(){
  });
  if(sort==='company')list.sort((a,b)=>(a.company_name||'').localeCompare(b.company_name||''));
  else list.sort((a,b)=>new Date(b.publication_date)-new Date(a.publication_date));
- countEl.textContent=list.length+' job'+(list.length===1?'':'s')+' found · '+allJobs.length+' eligible listings loaded';
- if(!list.length){jobsEl.innerHTML='<div class="state"><strong>No matching Egypt-eligible jobs right now</strong>Try a related keyword such as translator, Arabic, transcription, or customer support. You can also check again after the next daily refresh.</div>';return}
- jobsEl.innerHTML=list.map(j=>{
-  const loc=j.candidate_required_location||'Location not specified',salary=j.salary||'Salary not provided';
-  const sourceUrl=j.source_url||j.url,source=j.source||'Job source';
-  const tag=j.eligibility||'Location eligibility checked';
-  return '<article class="card"><div class="cardtop"><span class="company">'+esc(j.company_name)+'</span><span class="posted">'+dateLabel(j.publication_date)+'</span></div><h3>'+esc(j.title)+'</h3><div class="meta">'+esc(loc)+'</div><div class="tags"><span class="tag">'+esc(j.category||'Remote')+'</span><span class="tag">'+esc((j.job_type||'').replace('_',' ')||'Job type not listed')+'</span><span class="tag good">'+esc(tag)+'</span></div><div class="meta">Source: <a href="'+esc(sourceUrl)+'" target="_blank" rel="noopener">'+esc(source)+'</a> · Link checked: '+(j.link_status==='checked'?'yes':'limited')+'</div><div class="cardfoot"><span class="salary">'+esc(salary)+'</span><a class="apply" href="'+esc(j.url)+'" target="_blank" rel="noopener">Apply / details ↗</a></div></article>';
+ if(!list.length){
+  countEl.textContent='0 matching jobs · '+allJobs.length+' eligible listings loaded';
+  jobsEl.innerHTML='<div class="state"><strong>No matching Egypt-eligible jobs right now</strong>Try a related keyword such as translator, Arabic, transcription, or customer support. You can also check again after the next daily refresh.</div>';
+  nextCategoryBtn.hidden=true;
+  return;
+ }
+ const grouped=new Map();
+ list.forEach(j=>{const key=j.category||'Other';if(!grouped.has(key))grouped.set(key,[]);grouped.get(key).push(j)});
+ const groups=[...grouped.entries()].sort((a,b)=>b[1].length-a[1].length||a[0].localeCompare(b[0]));
+ countEl.textContent=list.length+' matching jobs across '+groups.length+' categor'+(groups.length===1?'y':'ies')+' · '+allJobs.length+' eligible listings loaded';
+ jobsEl.innerHTML=groups.map(([category,items],index)=>{
+  const expanded=expandedCategories.has(category),visible=expanded?items:items.slice(0,4),remaining=items.length-visible.length;
+  return '<section class="category-section" id="job-category-'+index+'" data-category-name="'+esc(category)+'"><div class="category-heading"><h2>'+esc(category)+'</h2><span>'+items.length+' job'+(items.length===1?'':'s')+'</span></div><div class="grid">'+visible.map(renderJobCard).join('')+'</div>'+(items.length>4?'<div class="show-more-wrap"><button class="show-more-btn" type="button" data-category="'+esc(category)+'" aria-expanded="'+expanded+'">'+(expanded?'Show less':'Show '+remaining+' more')+'</button></div>':'')+'</section>';
  }).join('');
+ nextCategoryBtn.hidden=groups.length<2;
 }
-
+jobsEl.addEventListener('click',e=>{
+ const button=e.target.closest('.show-more-btn');
+ if(!button)return;
+ const category=button.getAttribute('data-category');
+ if(expandedCategories.has(category))expandedCategories.delete(category);else expandedCategories.add(category);
+ render();
+});
+nextCategoryBtn.addEventListener('click',()=>{
+ const sections=[...jobsEl.querySelectorAll('.category-section')];
+ if(!sections.length)return;
+ const pivot=window.scrollY+window.innerHeight*.35;
+ const current=sections.findIndex((section,index)=>pivot>=section.offsetTop&&(index===sections.length-1||pivot<sections[index+1].offsetTop));
+ const target=sections[current<0?0:(current+1)%sections.length];
+ target.scrollIntoView({behavior:'smooth',block:'start'});
+});
 function renderProjects(){
  const el=document.getElementById('projectJobs'),label=document.getElementById('projectCount');
  const list=[...allProjectJobs].sort((a,b)=>new Date(b.first_seen||0)-new Date(a.first_seen||0));
