@@ -59,7 +59,7 @@ a{color:inherit}.wrap{max-width:1120px;margin:auto;padding:28px 22px 60px}.top{d
 </section>
 
 <section aria-labelledby="sheetSourcesTitle">
-<div class="bar"><h2 id="sheetSourcesTitle">Job source directory from your sheet</h2><span>20 sources · 5 added to the daily feed</span></div>
+<div class="bar"><h2 id="sheetSourcesTitle">Job source directory from your sheet</h2><span>20 sources · 4 new feeds added</span></div>
 <p class="project-note">The daily collector reads public feeds from Wing Assistant, Himalayas, We Work Remotely, Remote OK, Remotive, and Working Nomads, plus Jobicy. Other sources below are direct browse links because they do not provide a suitable public feed in this project. A directory link is not a verified vacancy; confirm Egypt eligibility on the original listing. We do not bypass sign-in or verification pages.</p>
 <details class="source-directory"><summary>Browse all 20 source websites</summary>
 <div class="platform-grid">
@@ -150,10 +150,11 @@ function jobCategory(j){
  const raw=String(j.category||'').trim().toLowerCase();
  const description=String(j.description||'').toLowerCase();
  const text=title+' '+raw+' '+description;
- if(/cold.?call|cold.?calling|outbound call|cold outreach/.test(text))return 'Cold Calling';
+ const negatesCold=/not cold.?call|no cold.?call|does not involve cold.?call|isn't cold.?call/.test(text);
+ if(!negatesCold&&/cold.?call|cold.?calling|outbound call|cold outreach/.test(text))return 'Cold Calling';
  if(/virtual assistant|virtual assistance|\bva\b|executive assistant|administrative assistant/.test(title+' '+raw))return 'Virtual Assistance';
- const support=/customer support|customer service|customer success|customer experience|customer care|client success|client services|technical support|help ?desk|service desk|support agent|support specialist|chat agent|call cent(er|re)|customer experience specialist/.test(title+' '+raw);
- const voice=/voice support|phone support|phone-based support|telephone support|call cent(er|re)|inbound calls?|voice customer service|phone customer service/.test(text);
+ const support=/customer support|customer service|customer success|customer experience|customer care|client success|client services|technical support|help ?desk|service desk|support agent|support specialist|chat agent|call cent(er|re)|customer experience specialist|\\bcx\\b|escalation specialist/.test(title+' '+raw);
+ const voice=/voice support|phone support|phone-based(?: customer)? support|phone-based customer|telephone support|call cent(er|re)|inbound calls?|voice customer service|phone customer service/.test(text);
  const nonVoice=/email-only|chat-only|ticket-only|non.?voice|live chat|email support|ticket-based support|written support|support tickets|respond.*(?:chat|email|ticket)|chat and email/.test(text);
  if(support&&nonVoice&&!voice)return 'Non-voice Customer Services';
  if(support&&voice)return 'Voice Customer Services';
