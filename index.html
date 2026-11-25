@@ -114,6 +114,32 @@ let allJobs=[],allProjectJobs=[],updatedAt=null;
 const expandedCategories=new Set();
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dateLabel=s=>{const d=new Date(s);return isNaN(d)?'Recently posted':d.toLocaleDateString(undefined,{day:'numeric',month:'short'})};
+function jobCategory(j){
+ const title=String(j.title||'').toLowerCase();
+ const raw=String(j.category||'').toLowerCase();
+ const text=title+' '+raw;
+ if(/customer support|customer service|customer success|customer experience|client success|client services|technical support|help ?desk|service desk|call center|call centre|support agent|support specialist/.test(text))return 'Customer Support';
+ if(/marketing|growth|seo|social media|content|communications|public relations|brand|copywriter|editor|paid media|demand generation/.test(title))return 'Marketing & Content';
+ if(/sales|account executive|business development|partnership|lead generation|appointment setter/.test(title))return 'Sales & Business Development';
+ if(/artificial intelligence|\bai\b|machine learning|\bml\b|llm|data annotat|data label|ai trainer|ai evaluat|prompt engineer/.test(title))return 'AI & Data Training';
+ if(/data scientist|data analyst|data engineer|analytics|business intelligence|\bbi analyst\b/.test(title))return 'Data & Analytics';
+ if(/software|developer|engineer|programmer|frontend|backend|full.?stack|web developer|mobile developer/.test(title))return 'Software Engineering';
+ if(/devops|cloud|infrastructure|site reliability|systems administrator|network engineer|it support|security|cybersecurity/.test(title))return 'IT & Infrastructure';
+ if(/designer|design|creative|illustrat|photograph|video editor|videographer|animator/.test(title))return 'Design & Creative';
+ if(/product manager|product owner|project manager|program manager|product operations/.test(title))return 'Product & Project Management';
+ if(/finance|accountant|accounting|bookkeeper|financial analyst|payroll/.test(title))return 'Finance & Accounting';
+ if(/recruit|talent acquisition|human resources|\bhr\b|people operations/.test(title))return 'HR & Recruiting';
+ if(/teacher|tutor|instructor|education|research|scientist|linguist|translator|translation|localization|localisation/.test(title))return 'Education, Research & Language';
+ if(/legal|attorney|lawyer|counsel|compliance|regulatory/.test(title))return 'Legal & Compliance';
+ if(/health|medical|clinical|physician|nurse|doctor/.test(title))return 'Healthcare';
+ if(/operations|administrative|executive assistant|virtual assistant|office manager|coordinator/.test(title))return 'Operations & Administration';
+ if(/marketing/.test(raw))return 'Marketing & Content';
+ if(/customer|support|success/.test(raw))return 'Customer Support';
+ if(/software|engineering|developer/.test(raw))return 'Software Engineering';
+ if(/\bai\b|machine.learning|annotation|data.label/.test(raw))return 'AI & Data Training';
+ if(/sales|business.development/.test(raw))return 'Sales & Business Development';
+ return 'Other';
+}
 function renderJobCard(j){
  const loc=j.candidate_required_location||'Location not specified',salary=j.salary||'Salary not provided';
  const sourceUrl=j.source_url||j.url,source=j.source||'Job source',tag=j.eligibility||'Location eligibility checked';
@@ -125,7 +151,7 @@ function render(){
  const terms=[q,...(aliases[q]||[])];
  let list=allJobs.filter(j=>{
   const hay=[j.title,j.company_name,j.category,j.job_type,j.candidate_required_location,j.description].join(' ').toLowerCase();
-  return (!q||terms.some(term=>hay.includes(term)))&&(!cat||j.category===cat)&&(!type||String(j.job_type||'').toLowerCase().includes(type))&&(!only||/egypt|africa|worldwide|anywhere/i.test(j.candidate_required_location||''));
+  return (!q||terms.some(term=>hay.includes(term)))&&(!cat||jobCategory(j)===cat)&&(!type||String(j.job_type||'').toLowerCase().includes(type))&&(!only||/egypt|africa|worldwide|anywhere/i.test(j.candidate_required_location||''));
  });
  if(sort==='company')list.sort((a,b)=>(a.company_name||'').localeCompare(b.company_name||''));
  else list.sort((a,b)=>new Date(b.publication_date)-new Date(a.publication_date));
@@ -136,7 +162,7 @@ function render(){
   return;
  }
  const grouped=new Map();
- list.forEach(j=>{const key=j.category||'Other';if(!grouped.has(key))grouped.set(key,[]);grouped.get(key).push(j)});
+ list.forEach(j=>{const key=jobCategory(j);if(!grouped.has(key))grouped.set(key,[]);grouped.get(key).push(j)});
  const groups=[...grouped.entries()].sort((a,b)=>b[1].length-a[1].length||a[0].localeCompare(b[0]));
  countEl.textContent=list.length+' matching jobs across '+groups.length+' categor'+(groups.length===1?'y':'ies')+' · '+allJobs.length+' eligible listings loaded';
  jobsEl.innerHTML=groups.map(([category,items],index)=>{
@@ -178,7 +204,7 @@ async function loadJobs(){
   if(!response.ok)throw new Error('Job snapshot is not published yet');
   const data=await response.json();allJobs=Array.isArray(data.jobs)?data.jobs:[];allProjectJobs=Array.isArray(data.project_jobs)?data.project_jobs:[];
   updatedAt=data.updated_at;
-  const cats=[...new Set(allJobs.map(j=>j.category).filter(Boolean))].sort();
+  const cats=[...new Set(allJobs.map(jobCategory))].sort();
   document.getElementById('category').innerHTML='<option value="">All categories</option>'+cats.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
   const stamp=updatedAt?new Date(updatedAt).toLocaleString('en-GB',{timeZone:'Africa/Cairo',dateStyle:'medium',timeStyle:'short'}):'not yet available';
   countEl.textContent=allJobs.length+' eligible listings · refreshed '+stamp+' Cairo time';
