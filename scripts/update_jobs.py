@@ -142,6 +142,74 @@ def fetch_wwr():
     return out
 
 
+def fetch_remoteok():
+    data = get_json("https://remoteok.com/api")
+    out = []
+    for j in data if isinstance(data, list) else []:
+        if not isinstance(j, dict) or not j.get("position"):
+            continue
+        location = j.get("location") or ""
+        description = j.get("description") or ""
+        item = record(
+            "Remote OK", j.get("position"), j.get("company"), j.get("apply_url") or j.get("url"),
+            location, description, j.get("date"), ", ".join(j.get("tags") or []), "",
+            "%s-%s" % (j.get("salary_min") or "", j.get("salary_max") or "") if j.get("salary_min") or j.get("salary_max") else "",
+            "https://remoteok.com/faq", j.get("id") or j.get("slug")
+        )
+        if item:
+            out.append(item)
+    return out
+
+
+def fetch_remotive():
+    data = get_json("https://remotive.com/api/remote-jobs")
+    out = []
+    for j in data.get("jobs", []) if isinstance(data, dict) else []:
+        item = record(
+            "Remotive", j.get("title"), j.get("company_name"), j.get("url"),
+            j.get("candidate_required_location") or "", j.get("description") or "",
+            j.get("publication_date"), j.get("category") or "", j.get("job_type") or "",
+            j.get("salary") or "", "https://remotive.com/remote-jobs/api", j.get("id")
+        )
+        if item:
+            out.append(item)
+    return out
+
+
+def fetch_working_nomads():
+    rows = get_json("https://www.workingnomads.com/api/exposed_jobs/")
+    out = []
+    for j in rows if isinstance(rows, list) else []:
+        item = record(
+            "Working Nomads", j.get("title"), j.get("company_name"), j.get("url"),
+            j.get("location") or "", j.get("description") or "", j.get("pub_date"),
+            j.get("category_name") or "", "", "", "https://www.workingnomads.com/jobs", j.get("id")
+        )
+        if item:
+            out.append(item)
+    return out
+
+
+def fetch_wing_assistant():
+    rows = get_json("https://api.lever.co/v0/postings/getwingapp", {"mode": "json"})
+    out = []
+    for j in rows if isinstance(rows, list) else []:
+        categories = j.get("categories") or {}
+        location = str(categories.get("location") or "")
+        description = j.get("descriptionPlain") or j.get("description") or ""
+        created = j.get("createdAt")
+        published = iso_date(created / 1000 if isinstance(created, (int, float)) and created > 100000000000 else created)
+        item = record(
+            "Wing Assistant", j.get("text") or j.get("title"), "Wing Assistant",
+            j.get("hostedUrl") or j.get("applyUrl"), location, description, published,
+            categories.get("team") or "", categories.get("commitment") or "",
+            j.get("salaryDescription") or "", "https://jobs.lever.co/getwingapp", j.get("id")
+        )
+        if item:
+            out.append(item)
+    return out
+
+
 # Public AI-training listings feed, reusable under CC BY 4.0 with attribution.
 AI_PROJECT_PLATFORM_MATCH = {
     "meridial": "Meridial",
@@ -370,13 +438,25 @@ def check_link(job):
 
 def main():
     sources = [
-        {"name":"Himalayas","url":"https://himalayas.app/","api":"https://himalayas.app/docs/remote-jobs-api","note":"Country-filtered for Egypt; worldwide jobs are included by the source API."},
-        {"name":"Jobicy","url":"https://jobicy.com/","api":"https://jobicy.com/jobs-rss-feed","note":"Public worldwide remote-jobs API; worldwide eligibility is checked against listing text."},
-        {"name":"We Work Remotely","url":"https://weworkremotely.com/","api":"https://weworkremotely.com/remote-job-rss-feed","note":"Official public RSS; only explicit Egypt, Africa, or worldwide locations are included."}
+        {"name":"Himalayas","url":"https://himalayas.app/","api":"https://himalayas.app/docs/remote-jobs-api","note":"Public API queried for Egypt; only source-confirmed Egypt, Africa, or worldwide eligibility is shown."},
+        {"name":"Jobicy","url":"https://jobicy.com/","api":"https://jobicy.com/jobs-rss-feed","note":"Public worldwide remote-jobs API; only explicit Egypt, Africa, or worldwide locations are included."},
+        {"name":"We Work Remotely","url":"https://weworkremotely.com/","api":"https://weworkremotely.com/remote-job-rss-feed","note":"Official public RSS; only explicit Egypt, Africa, or worldwide locations are included."},
+        {"name":"Remote OK","url":"https://remoteok.com/","api":"https://remoteok.com/api","note":"Free public JSON feed. Remote OK is credited and every listing links to its original post; explicit eligible locations only."},
+        {"name":"Remotive","url":"https://remotive.com/","api":"https://remotive.com/api/remote-jobs","note":"Public API, refreshed once daily (within its recommended limit of 4 requests/day); 24-hour feed delay. Direct Remotive job/source links are retained."},
+        {"name":"Working Nomads","url":"https://www.workingnomads.com/jobs","api":"https://www.workingnomads.com/api/exposed_jobs/","note":"Public jobs feed linked from its site API page; only explicit Egypt, Africa, or worldwide locations are included."},
+        {"name":"Wing Assistant","url":"https://jobs.lever.co/getwingapp","api":"https://api.lever.co/v0/postings/getwingapp?mode=json","note":"Public Lever postings feed from the source listed in the supplied sheet; only explicit eligible locations are included."}
     ]
     collected, errors = [], []
     project_jobs = []
-    for name, fn in [("Himalayas", fetch_himalayas), ("Jobicy", fetch_jobicy), ("We Work Remotely", fetch_wwr)]:
+    for name, fn in [
+        ("Himalayas", fetch_himalayas),
+        ("Jobicy", fetch_jobicy),
+        ("We Work Remotely", fetch_wwr),
+        ("Remote OK", fetch_remoteok),
+        ("Remotive", fetch_remotive),
+        ("Working Nomads", fetch_working_nomads),
+        ("Wing Assistant", fetch_wing_assistant)
+    ]:
         try:
             batch = fn()
             collected.extend(batch)
