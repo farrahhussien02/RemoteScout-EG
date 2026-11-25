@@ -85,9 +85,17 @@ def fetch_himalayas():
             break
         for j in jobs:
             restrictions = j.get("locationRestrictions") or []
+                        # Himalayas country search includes Egypt-restricted jobs plus unrestricted worldwide jobs.
+            # Egypt standard time is UTC+2; skip listings with incompatible explicit timezone limits.
+            tz = j.get("timezoneRestrictions") or []
+            if tz and not any(str(x).strip().upper().replace("UTC", "").replace("+", "").replace(" ", "") in ("2", "2.0") for x in tz):
+                continue
             location = "Egypt" if any(str(x).lower() in ("egypt", "eg") for x in restrictions) else ("Worldwide" if not restrictions else ", ".join(restrictions))
             desc = j.get("description") or j.get("excerpt") or ""
-            item = record("Himalayas", j.get("title"), j.get("companyName"), j.get("applicationLink"), location, desc, j.get("pubDate"), ", ".join(j.get("categories") or j.get("parentCategories") or []), j.get("employmentType"), "", "https://himalayas.app/", j.get("guid"), j.get("expiryDate"))
+            salary = ""
+            if j.get("minSalary") is not None or j.get("maxSalary") is not None:
+                salary = "%s %s-%s %s" % (j.get("currency") or "", j.get("minSalary") or "", j.get("maxSalary") or "", j.get("salaryPeriod") or "annual")
+            item = record("Himalayas", j.get("title"), j.get("companyName"), j.get("applicationLink"), location, desc, j.get("pubDate"), ", ".join(j.get("categories") or j.get("parentCategories") or []), j.get("employmentType"), salary, "https://himalayas.app/", j.get("guid"), j.get("expiryDate"))
             if item: out.append(item)
         if len(jobs) < 20:
             break
