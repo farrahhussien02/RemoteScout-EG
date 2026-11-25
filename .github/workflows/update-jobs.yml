@@ -42,5 +42,6 @@ jobs:
             echo "No job data changes."
           else
             git commit -m "Refresh remote job listings"
+            git pull --rebase origin main
             git push
           fi
