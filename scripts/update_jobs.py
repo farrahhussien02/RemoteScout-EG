@@ -469,8 +469,16 @@ def main():
     print("All project feeds: %s fresh Egypt-eligible listings" % len(project_jobs))
     deduped = {}
     for job in collected:
-        key = job["url"].split("?")[0].rstrip("/").lower()
-        if key not in deduped or (job.get("publication_date","") > deduped[key].get("publication_date","")):
+        canonical_url = job["url"].split("?")[0].rstrip("/").lower()
+        signature_text = " ".join([
+            clean_text(job.get("company_name", "")).lower(),
+            clean_text(job.get("title", "")).lower(),
+            clean_text(job.get("candidate_required_location", "")).lower()
+        ])
+        signature = re.sub(r"[^a-z0-9]+", " ", signature_text).strip()
+        key = "listing:" + signature if signature else "url:" + canonical_url
+        current = deduped.get(key)
+        if current is None or (job.get("publication_date", "") > current.get("publication_date", "")):
             deduped[key] = job
     candidates = list(deduped.values())
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
