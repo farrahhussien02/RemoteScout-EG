@@ -178,6 +178,35 @@ def country_is_eligible(value):
         return True, "Africa listed"
     return False, "Egypt not listed"
 
+
+def collect_project_sources():
+    collected = []
+    errors = []
+    try:
+        collected.extend(fetch_oneforma())
+    except Exception as exc:
+        errors.append({"source":"OneForma","error":str(exc)[:240]})
+        print("OneForma feed failed: %s" % exc)
+    for site, name in [("appen", "CrowdGen by Appen"), ("rws", "RWS TrainAI")]:
+        try:
+            batch = fetch_lever_projects(site, name)
+            collected.extend(batch)
+            print("%s: %s fresh Egypt-eligible projects" % (name, len(batch)))
+        except Exception as exc:
+            errors.append({"source":name,"error":str(exc)[:240]})
+            print("%s feed failed: %s" % (name, exc))
+    try:
+        collected.extend(fetch_ai_training_projects())
+    except Exception as exc:
+        errors.append({"source":"AI training project feed","error":str(exc)[:240]})
+        print("AI training project feed failed: %s" % exc)
+    deduped = {}
+    for item in collected:
+        key = item["url"].split("?")[0].rstrip("/").lower()
+        if key not in deduped or item.get("first_seen","") > deduped[key].get("first_seen",""):
+            deduped[key] = item
+    return list(deduped.values()), errors
+
 def fetch_ai_training_projects():
     out, offset, total = [], 0, None
     while total is None or offset < total:
@@ -252,6 +281,76 @@ def fetch_ai_training_projects():
         deduped[key] = item
     return list(deduped.values())
 
+
+def fetch_oneforma():
+    endpoint = "https://www.oneforma.com/wp-json/wp/v2/job"
+    rows = get_json(endpoint, {"per_page": 100, "orderby": "date", "order": "desc"})
+    out = []
+    if not isinstance(rows, list):
+        return out
+    for j in rows:
+        title_obj = j.get("title") or {}
+        content_obj = j.get("content") or {}
+        title = title_obj.get("rendered", "") if isinstance(title_obj, dict) else str(title_obj)
+        body = content_obj.get("rendered", "") if isinstance(content_obj, dict) else str(content_obj)
+        pub = iso_date(j.get("date_gmt") or j.get("date"))
+        if not title or not pub or pub < NOW - dt.timedelta(days=7):
+            continue
+        meta = j.get("meta") or {}
+        status = clean_text(first_value(meta, "status", "project_status", "job_status") or "").lower()
+        if any(word in status for word in ("closed", "paused", "expired", "inactive")):
+            continue
+        ok, eligibility = allowed(title + " " + body, body)
+        if not ok:
+            continue
+        location = "Egypt" if EGYPT.search(title + " " + body) else ("Africa" if AFRICA.search(title + " " + body) else "Worldwide")
+        item = record("OneForma", title, "OneForma", j.get("link"), location, body, pub,
+                      clean_text(first_value(meta, "domain", "category") or "AI / language project"),
+                      "project / contract",
+                      clean_text(first_value(meta, "pay", "rate", "salary") or ""),
+                      "https://www.oneforma.com/projects/", j.get("id"))
+        if item:
+            item["first_seen"] = pub.isoformat()
+            item["last_seen"] = NOW.isoformat()
+            item["applicant_count"] = None
+            item["competition_note"] = "Applicant count not disclosed"
+            item["link_status"] = "source_feed"
+            out.append(item)
+    return out
+
+def fetch_lever_projects(site, platform_name):
+    rows = get_json("https://api.lever.co/v0/postings/" + site, {"mode": "json"})
+    out = []
+    if not isinstance(rows, list):
+        return out
+    for j in rows:
+        title = j.get("text") or j.get("title") or ""
+        categories = j.get("categories") or {}
+        location = str(categories.get("location") or "")
+        body = j.get("descriptionPlain") or j.get("description") or ""
+        created = j.get("createdAt")
+        pub = iso_date(created / 1000 if isinstance(created, (int, float)) and created > 100000000000 else created)
+        if not title or not pub or pub < NOW - dt.timedelta(days=7):
+            continue
+        ok, eligibility = allowed(title + " " + location, body)
+        if not ok:
+            continue
+        url = j.get("hostedUrl") or j.get("applyUrl")
+        item = record(platform_name, title, platform_name, url, title + " " + location, body, pub,
+                      categories.get("team") or "AI / language project",
+                      categories.get("commitment") or "contract / project",
+                      j.get("salaryDescription") or "",
+                      "https://jobs.lever.co/" + site, j.get("id"))
+        if item:
+            item["candidate_required_location"] = location or ("Egypt" if EGYPT.search(title) else "Worldwide")
+            item["first_seen"] = pub.isoformat()
+            item["last_seen"] = NOW.isoformat()
+            item["applicant_count"] = None
+            item["competition_note"] = "Applicant count not disclosed"
+            item["link_status"] = "source_feed"
+            out.append(item)
+    return out
+
 def check_link(job):
     try:
         r = requests.get(job["url"], headers=HEADERS, timeout=12, allow_redirects=True, stream=True)
@@ -285,12 +384,9 @@ def main():
         except Exception as exc:
             errors.append({"source":name,"error":str(exc)[:240]})
             print("%s failed: %s" % (name, exc))
-    try:
-        project_jobs = fetch_ai_training_projects()
-        print("AI training project feed: %s fresh Egypt-eligible listings" % len(project_jobs))
-    except Exception as exc:
-        errors.append({"source":"AI training project feed","error":str(exc)[:240]})
-        print("AI training project feed failed: %s" % exc)
+    project_jobs, project_errors = collect_project_sources()
+    errors.extend(project_errors)
+    print("All project feeds: %s fresh Egypt-eligible listings" % len(project_jobs))
     deduped = {}
     for job in collected:
         key = job["url"].split("?")[0].rstrip("/").lower()
