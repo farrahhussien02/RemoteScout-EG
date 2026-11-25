@@ -135,16 +135,23 @@ function jobCategory(j){
  if(/mechanical|aerospace|electrical|civil engineer|hardware|manufacturing|robotics|aerodynamics|simulation|\bcnc\b|\bcad\b|semiconductor|engineering expert/.test(title))return 'Engineering & Hardware';
  if(/operations|administrative|executive assistant|virtual assistant|office manager|coordinator/.test(title))return 'Operations & Administration';
  if(/consultant|consulting|strategy|strategist/.test(title))return 'Consulting & Strategy';
- if(raw.length<55){
-  if(/customer support|customer service|customer success|technical support/.test(raw))return 'Customer Support';
-  if(/marketing|content & editorial/.test(raw))return 'Marketing & Content';
-  if(/sales|business development/.test(raw))return 'Sales & Business Development';
-  if(/software engineering/.test(raw))return 'Software Engineering';
-  if(/devops & infrastructure|technical support/.test(raw))return 'IT & Infrastructure';
-  if(/qa & testing/.test(raw))return 'Quality Assurance & Testing';
-  if(/project & program management/.test(raw))return 'Product & Project Management';
-  if(/admin & virtual assistance|product & operations/.test(raw))return 'Operations & Administration';
- }
+ if(/customer support|customer service|customer success|technical support/.test(raw))return 'Customer Support';
+ if(/\bqa\b|quality assurance|quality control|software test/.test(raw))return 'Quality Assurance & Testing';
+ if(/artificial intelligence|\bai\b|machine learning|\bml\b|llm|annotation|data label|ai trainer|ai evaluat|prompt engineer/.test(raw))return 'AI & Data Training';
+ if(/sales|account executive|account manager|business development|partnership|lead generation|appointment setter|acquisition/.test(raw))return 'Sales & Business Development';
+ if(/devops|cloud|infrastructure|site reliability|cybersecurity|security engineer|systems administrator|network engineer|it support/.test(raw))return 'IT & Infrastructure';
+ if(/marketing|growth|seo|social media|content|editorial|paid media|demand generation|brand/.test(raw))return 'Marketing & Content';
+ if(/data scientist|data analyst|data engineer|data architect|analytics|business intelligence|market intelligence/.test(raw))return 'Data & Analytics';
+ if(/software|developer|programmer|frontend|backend|full.stack|\bengineer\b/.test(raw))return 'Software Engineering';
+ if(/product manager|product owner|project manager|program manager|project & program/.test(raw))return 'Product & Project Management';
+ if(/accountant|accounting|bookkeeper|finance|financial analyst|payroll|investment/.test(raw))return 'Finance & Accounting';
+ if(/recruit|talent acquisition|human resources|people operations/.test(raw))return 'HR & Recruiting';
+ if(/teacher|tutor|instructor|education|research|scientist|linguist|translator|translation|localization|localisation|stem|mathematic|physics/.test(raw))return 'Education, Research & Language';
+ if(/legal|attorney|lawyer|counsel|compliance|regulatory|paralegal/.test(raw))return 'Legal & Compliance';
+ if(/health|medical|clinical|physician|nurse|doctor/.test(raw))return 'Healthcare';
+ if(/mechanical|aerospace|electrical|civil engineer|hardware|manufacturing|robotics|aerodynamics|simulation|\bcnc\b|\bcad\b|semiconductor|engineering expert/.test(raw))return 'Engineering & Hardware';
+ if(/operations|administrative|executive assistant|virtual assistant|office manager|coordinator|procurement/.test(raw))return 'Operations & Administration';
+ if(/consultant|consulting|strategy|strategist/.test(raw))return 'Consulting & Strategy';
  return 'Other';
 }
 function renderJobCard(j){
