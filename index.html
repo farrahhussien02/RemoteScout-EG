@@ -29,45 +29,51 @@ a{color:inherit}.wrap{max-width:1120px;margin:auto;padding:28px 22px 60px}.top{d
 <div class="field"><label for="type">Job type</label><select id="type"><option value="">Any type</option><option>full_time</option><option>contract</option><option>part_time</option><option>freelance</option></select></div>
 <div class="field"><label for="sort">Sort by</label><select id="sort"><option value="new">Newest first</option><option value="company">Company A–Z</option></select></div>
 </div>
-<label class="checkrow"><input type="checkbox" id="egyptOnly"> Only show jobs that explicitly include Egypt, Africa, or worldwide eligibility</label>
+<label class="checkrow"><input type="checkbox" id="egyptOnly" checked> Only show jobs confirmed as eligible for applicants in Egypt</label>
 <div class="bar"><h2>Remote opportunities</h2><span id="count">Loading jobs…</span></div>
 <section class="grid" id="jobs" aria-live="polite"><div class="state"><strong>Finding fresh opportunities…</strong>Connecting to the remote jobs feed.</div></section>
 <div class="notice"><strong>Before you apply:</strong> “Remote” does not always mean “work from any country.” Open the original listing and confirm that applicants based in Egypt are accepted, along with language, time-zone, and work-authorization requirements.</div>
-<footer class="footer"><span>Remote Scout EG · A work-in-progress made for remote job seekers in Egypt.</span><span>Job data: <a href="https://remotive.com/" target="_blank" rel="noopener">Remotive</a> · <a href="https://remotive.com/remote-jobs/api" target="_blank" rel="noopener">API info</a></span></footer>
+<footer class="footer"><span>Remote Scout EG · Updated automatically every day. Always verify details on the original listing.</span><span>Job sources: <a href="https://himalayas.app/" target="_blank" rel="noopener">Himalayas</a> · <a href="https://jobicy.com/" target="_blank" rel="noopener">Jobicy</a> · <a href="https://weworkremotely.com/" target="_blank" rel="noopener">We Work Remotely</a></span></footer>
 </div>
 <script>
-const API='https://remotive.com/api/remote-jobs';
+const DATA_URL='./jobs.json';
 const jobsEl=document.getElementById('jobs'),countEl=document.getElementById('count');
-let allJobs=[];
+let allJobs=[],updatedAt=null;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dateLabel=s=>{const d=new Date(s);return isNaN(d)?'Recently posted':d.toLocaleDateString(undefined,{day:'numeric',month:'short'})};
-function eligible(j){const loc=(j.candidate_required_location||'').toLowerCase();return /worldwide|anywhere|africa|egypt/.test(loc)}
 function render(){
  const q=document.getElementById('q').value.trim().toLowerCase(),cat=document.getElementById('category').value,type=document.getElementById('type').value,only=document.getElementById('egyptOnly').checked,sort=document.getElementById('sort').value;
+ const aliases={'translation':['translator','translation','localization','localisation','linguist','arabic'],'transcription':['transcription','transcriber','captioning','subtitling'],'captioning':['caption','subtitling','subtitle'],'clipping':['video editor','short-form video','video clipping','content editor']};
+ const terms=[q,...(aliases[q]||[])];
  let list=allJobs.filter(j=>{
   const hay=[j.title,j.company_name,j.category,j.job_type,j.candidate_required_location,j.description].join(' ').toLowerCase();
-  return (!q||hay.includes(q))&&(!cat||j.category===cat)&&(!type||String(j.job_type||'').toLowerCase()===type)&&(!only||eligible(j));
+  return (!q||terms.some(term=>hay.includes(term)))&&(!cat||j.category===cat)&&(!type||String(j.job_type||'').toLowerCase().includes(type))&&(!only||/egypt|africa|worldwide|anywhere/i.test(j.candidate_required_location||''));
  });
  if(sort==='company')list.sort((a,b)=>(a.company_name||'').localeCompare(b.company_name||''));
  else list.sort((a,b)=>new Date(b.publication_date)-new Date(a.publication_date));
- countEl.textContent=list.length+' job'+(list.length===1?'':'s')+' found · '+allJobs.length+' loaded';
- if(!list.length){jobsEl.innerHTML='<div class="state"><strong>No matching jobs right now</strong>Try a broader search or untick the Egypt/Africa/worldwide filter to explore more remote roles.</div>';return}
+ countEl.textContent=list.length+' job'+(list.length===1?'':'s')+' found · '+allJobs.length+' eligible listings loaded';
+ if(!list.length){jobsEl.innerHTML='<div class="state"><strong>No matching Egypt-eligible jobs right now</strong>Try a related keyword such as translator, Arabic, transcription, or customer support. You can also check again after the next daily refresh.</div>';return}
  jobsEl.innerHTML=list.map(j=>{
-  const ok=eligible(j),loc=j.candidate_required_location||'Location not specified',salary=j.salary||'Salary not provided';
-  return '<article class="card"><div class="cardtop"><span class="company">'+esc(j.company_name)+'</span><span class="posted">'+dateLabel(j.publication_date)+'</span></div><h3>'+esc(j.title)+'</h3><div class="meta">'+esc(loc)+'</div><div class="tags"><span class="tag">'+esc(j.category||'Remote')+'</span><span class="tag">'+esc((j.job_type||'').replace('_',' ')||'Job type not listed')+'</span><span class="tag '+(ok?'good':'caution')+'">'+(ok?'Potentially Egypt-friendly':'Check location rules')+'</span></div><div class="cardfoot"><span class="salary">'+esc(salary)+'</span><a class="apply" href="'+esc(j.url)+'" target="_blank" rel="noopener">View job ↗</a></div></article>';
+  const loc=j.candidate_required_location||'Location not specified',salary=j.salary||'Salary not provided';
+  const sourceUrl=j.source_url||j.url,source=j.source||'Job source';
+  const tag=j.eligibility||'Location eligibility checked';
+  return '<article class="card"><div class="cardtop"><span class="company">'+esc(j.company_name)+'</span><span class="posted">'+dateLabel(j.publication_date)+'</span></div><h3>'+esc(j.title)+'</h3><div class="meta">'+esc(loc)+'</div><div class="tags"><span class="tag">'+esc(j.category||'Remote')+'</span><span class="tag">'+esc((j.job_type||'').replace('_',' ')||'Job type not listed')+'</span><span class="tag good">'+esc(tag)+'</span></div><div class="meta">Source: <a href="'+esc(sourceUrl)+'" target="_blank" rel="noopener">'+esc(source)+'</a> · Link checked: '+(j.link_status==='checked'?'yes':'limited')+'</div><div class="cardfoot"><span class="salary">'+esc(salary)+'</span><a class="apply" href="'+esc(j.url)+'" target="_blank" rel="noopener">Apply / details ↗</a></div></article>';
  }).join('');
 }
 async function loadJobs(){
  try{
-  const response=await fetch(API,{headers:{Accept:'application/json'}});
-  if(!response.ok)throw new Error('The jobs feed returned '+response.status);
+  const response=await fetch(DATA_URL+'?v='+Date.now(),{cache:'no-store'});
+  if(!response.ok)throw new Error('Job snapshot is not published yet');
   const data=await response.json();allJobs=Array.isArray(data.jobs)?data.jobs:[];
+  updatedAt=data.updated_at;
   const cats=[...new Set(allJobs.map(j=>j.category).filter(Boolean))].sort();
-  document.getElementById('category').innerHTML='<option value="">All categories</option>'+cats.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join('');
+  document.getElementById('category').innerHTML='<option value="">All categories</option>'+cats.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');
+  const stamp=updatedAt?new Date(updatedAt).toLocaleString('en-GB',{timeZone:'Africa/Cairo',dateStyle:'medium',timeStyle:'short'}):'not yet available';
+  countEl.textContent=allJobs.length+' eligible listings · refreshed '+stamp+' Cairo time';
   render();
  }catch(e){
-  countEl.textContent='Live feed unavailable';
-  jobsEl.innerHTML='<div class="state"><strong>Could not load the live jobs feed</strong>Please check your internet connection and try again. The feed may also be temporarily unavailable or block this request from the browser.<br><br><button class="reset" onclick="loadJobs()">Try again</button></div>';
+  countEl.textContent='Job feed is being prepared';
+  jobsEl.innerHTML='<div class="state"><strong>The first daily job collection is still running</strong>Refresh this page in a minute. If this message remains, the scheduled GitHub job may need attention.</div>';
  }
 }
 document.getElementById('searchBtn').addEventListener('click',render);
