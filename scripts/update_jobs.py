@@ -246,7 +246,7 @@ def fetch_ai_training_projects():
         if total is not None and offset >= total:
             break
         time.sleep(1.5)
-    try:\n        project_jobs = fetch_ai_training_projects()\n        print("AI training project feed: %s fresh Egypt-eligible listings" % len(project_jobs))\n    except Exception as exc:\n        errors.append({"source":"AI training project feed","error":str(exc)[:240]})\n        print("AI training project feed failed: %s" % exc)\n        deduped = {}
+    deduped = {}
     for item in out:
         key = item["url"].split("?")[0].rstrip("/").lower()
         deduped[key] = item
@@ -275,7 +275,8 @@ def main():
         {"name":"Jobicy","url":"https://jobicy.com/","api":"https://jobicy.com/jobs-rss-feed","note":"Public worldwide remote-jobs API; worldwide eligibility is checked against listing text."},
         {"name":"We Work Remotely","url":"https://weworkremotely.com/","api":"https://weworkremotely.com/remote-job-rss-feed","note":"Official public RSS; only explicit Egypt, Africa, or worldwide locations are included."}
     ]
-    collected, errors = [], []\n    project_jobs = []
+    collected, errors = [], []
+    project_jobs = []
     for name, fn in [("Himalayas", fetch_himalayas), ("Jobicy", fetch_jobicy), ("We Work Remotely", fetch_wwr)]:
         try:
             batch = fn()
@@ -284,6 +285,12 @@ def main():
         except Exception as exc:
             errors.append({"source":name,"error":str(exc)[:240]})
             print("%s failed: %s" % (name, exc))
+    try:
+        project_jobs = fetch_ai_training_projects()
+        print("AI training project feed: %s fresh Egypt-eligible listings" % len(project_jobs))
+    except Exception as exc:
+        errors.append({"source":"AI training project feed","error":str(exc)[:240]})
+        print("AI training project feed failed: %s" % exc)
     deduped = {}
     for job in collected:
         key = job["url"].split("?")[0].rstrip("/").lower()
@@ -296,7 +303,9 @@ def main():
     payload = {
         "updated_at": NOW.isoformat(), "timezone": "UTC",
         "job_count": len(checked), "sources": sources,
-        "jobs": checked,\n        "project_job_count": len(project_jobs), "project_jobs": project_jobs,\n        "project_feed_attribution": "AI training listings from aitrainer.work/open-data, licensed under CC BY 4.0.",
+        "jobs": checked,
+        "project_job_count": len(project_jobs), "project_jobs": project_jobs,
+        "project_feed_attribution": "AI training listings from aitrainer.work/open-data, licensed under CC BY 4.0.",
         "update_note": "Automatically refreshed daily. Listings are re-read from their sources; expired, missing, broken, and explicitly Egypt-excluding listings are removed.",
         "source_errors": errors
     }
