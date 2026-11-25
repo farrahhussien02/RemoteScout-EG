@@ -151,8 +151,10 @@ function jobCategory(j){
  const description=String(j.description||'').toLowerCase();
  const text=title+' '+raw+' '+description;
  const negatesCold=/not cold.?call|no cold.?call|does not involve cold.?call|isn't cold.?call/.test(text);
- if(!negatesCold&&/cold.?call|cold.?calling|outbound call|cold outreach/.test(text))return 'Cold Calling';
- if(/virtual assistant|virtual assistance|\bva\b|executive assistant|administrative assistant/.test(title+' '+raw))return 'Virtual Assistance';
+ const coldInTitle=/cold.?call|cold outbound/.test(title);
+ const coldInDescription=/cold.?call|cold.?calling/.test(description);
+ if(coldInTitle||(!negatesCold&&coldInDescription))return 'Cold Calling';
+ if(/virtual assistant|executive assistant|administrative assistant/.test(title))return 'Virtual Assistance';
  const support=/customer support|customer service|customer success|customer experience|customer care|client success|client services|technical support|help ?desk|service desk|support agent|support specialist|chat agent|call cent(er|re)|customer experience specialist|\\bcx\\b|escalation specialist/.test(title+' '+raw);
  const voice=/voice support|phone support|phone-based(?: customer)? support|phone-based customer|telephone support|call cent(er|re)|inbound calls?|voice customer service|phone customer service/.test(text);
  const nonVoice=/email-only|chat-only|ticket-only|non.?voice|live chat|email support|ticket-based support|written support|support tickets|respond.*(?:chat|email|ticket)|chat and email/.test(text);
