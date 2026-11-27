@@ -30,8 +30,8 @@ a{color:inherit}.wrap{max-width:1120px;margin:auto;padding:28px 22px 60px}.top{d
 <div class="searchbox"><input id="q" type="search" placeholder="Try “translator”, “customer support”, “designer”…" aria-label="Search jobs"><button id="searchBtn">Find jobs ↗</button></div>
 <div class="filters">
 <div class="field"><label for="category">Job category</label><select id="category"><option value="">All categories</option></select></div>
-<div class="field"><label for="type">Job type</label><select id="type"><option value="">Any type</option><option>full_time</option><option>contract</option><option>part_time</option><option>freelance</option></select></div>
-<div class="field"><label for="sort">Sort by</label><select id="sort"><option value="new">Newest first</option><option value="company">Company A–Z</option></select></div>
+<div class="field"><label for="type">Job type</label><select id="type"><option value="">Any type</option><option>full_time</option><option>contract</option><option>part_time</option><option>freelance</option><option>temporary</option><option>other</option></select></div>
+<div class="field"><label for="sort">Sort by</label><select id="sort"><option value="new">Newest first</option><option value="company">Company A–Z</option><option value="part_time">Part-time first</option></select></div>
 </div>
 <label class="checkrow"><input type="checkbox" id="egyptOnly" checked> Only show jobs confirmed as eligible for applicants in Egypt</label>
 <div class="bar"><h2>Remote opportunities</h2><span id="count">Loading jobs…</span></div>
@@ -60,8 +60,8 @@ a{color:inherit}.wrap{max-width:1120px;margin:auto;padding:28px 22px 60px}.top{d
 
 <section aria-labelledby="sheetSourcesTitle">
 <div class="bar"><h2 id="sheetSourcesTitle">Job source directory from your sheet</h2><span>21 sources · 5 new feeds added</span></div>
-<p class="project-note">The daily collector reads public feeds from 20four7VA, Wing Assistant, Himalayas, We Work Remotely, Remote OK, Remotive, and Working Nomads, plus Jobicy. Other sources below are direct browse links because they do not provide a suitable public feed in this project. A directory link is not a verified vacancy; confirm Egypt eligibility on the original listing. We do not bypass sign-in or verification pages.</p>
-<details class="source-directory"><summary>Browse all 20 source websites</summary>
+<p class="project-note">The daily collector reads public feeds from 20four7VA, Wing Assistant, Himalayas, We Work Remotely, Remote OK, Remotive, and Working Nomads, plus Jobicy. Part-time roles are included and can be brought to the top with the “Part-time first” sort. Other sources below are direct browse links because they do not provide a suitable public feed in this project. A directory link is not a verified vacancy; confirm Egypt eligibility on the original listing. We do not bypass sign-in or verification pages.</p>
+<details class="source-directory"><summary>Browse all 21 source websites</summary>
 <div class="platform-grid">
 <article class="platform-card"><h3>20four7VA</h3><span class="platform-status">Daily public feed · Breezy HR · All engagement types</span><p>Part-time and full-time virtual assistant, customer support, appointment setting, lead generation, cold calling, contract and temporary opportunities. The daily collector reads the public employer feed and keeps only roles whose location policy explicitly includes Egypt, Africa, or unrestricted worldwide remote work.</p><a href="https://20four7va.breezy.hr/" target="_blank" rel="noopener">Browse 20four7VA jobs ↗</a></article>
 <article class="platform-card"><h3>Wing Assistant</h3><span class="platform-status">Daily public feed · Lever</span><p>Virtual assistance, customer support, and sales roles. Only listings that explicitly accept Egypt, Africa, or worldwide applicants enter the feed.</p><a href="https://jobs.lever.co/getwingapp" target="_blank" rel="noopener">Browse Wing Assistant jobs ↗</a></article>
@@ -210,9 +210,10 @@ function render(){
  const terms=[q,...(aliases[q]||[])];
  let list=allJobs.filter(j=>{
   const hay=[j.title,j.company_name,j.category,j.job_type,j.candidate_required_location,j.description].join(' ').toLowerCase();
-  return (!q||terms.some(term=>hay.includes(term)))&&(!cat||jobCategory(j)===cat)&&(!type||String(j.job_type||'').toLowerCase().includes(type))&&(!only||/egypt|africa|worldwide|anywhere/i.test(j.candidate_required_location||''));
+  return (!q||terms.some(term=>hay.includes(term)))&&(!cat||jobCategory(j)===cat)&&(!type||String(j.job_type||'').toLowerCase().replace(/[\\s-]+/g,'_').includes(type))&&(!only||/egypt|africa|worldwide|anywhere/i.test(j.candidate_required_location||''));
  });
  if(sort==='company')list.sort((a,b)=>(a.company_name||'').localeCompare(b.company_name||''));
+ else if(sort==='part_time')list.sort((a,b)=>Number(/part[_ -]?time/i.test(b.job_type||''))-Number(/part[_ -]?time/i.test(a.job_type||''))||new Date(b.publication_date)-new Date(a.publication_date));
  else list.sort((a,b)=>new Date(b.publication_date)-new Date(a.publication_date));
  if(!list.length){
   countEl.textContent='0 matching jobs · '+allJobs.length+' eligible listings loaded';
