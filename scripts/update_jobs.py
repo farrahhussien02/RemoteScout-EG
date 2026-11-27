@@ -453,6 +453,7 @@ def fetch_20four7va():
         job_type = j.get("type") or ""
         if isinstance(job_type, dict):
             job_type = job_type.get("name") or job_type.get("label") or ""
+        job_type = re.sub(r"[^a-z0-9]+", "_", clean_text(job_type).lower()).strip("_")
         item = record(
             "20four7VA", title, "20four7VA", url, location_text, "",
             j.get("published_date") or j.get("publishedDate") or "",
