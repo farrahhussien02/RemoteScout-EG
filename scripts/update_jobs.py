@@ -454,14 +454,19 @@ def fetch_20four7va():
         if isinstance(job_type, dict):
             job_type = job_type.get("name") or job_type.get("label") or ""
         job_type = re.sub(r"[^a-z0-9]+", "_", clean_text(job_type).lower()).strip("_")
+        published = j.get("published_date") or j.get("publishedDate") or ""
+        # The public Breezy feed contains only currently published/open jobs.
+        # Do not discard an older-dated role if it is still on the employer's
+        # live board; preserve its original posting date for display/sorting.
         item = record(
             "20four7VA", title, "20four7VA", url, location_text, "",
-            j.get("published_date") or j.get("publishedDate") or "",
-            j.get("department") or "Virtual Assistance / Customer Support",
+            "", j.get("department") or "Virtual Assistance / Customer Support",
             job_type, j.get("salary") or "", "https://20four7va.breezy.hr/",
             j.get("id") or j.get("friendly_id")
         )
         if item:
+            pub = iso_date(published)
+            item["publication_date"] = pub.isoformat() if pub else ""
             item["candidate_required_location"] = clean_text(location_text).strip()
             out.append(item)
     return out
