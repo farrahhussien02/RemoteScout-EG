@@ -419,6 +419,53 @@ def fetch_lever_projects(site, platform_name):
             out.append(item)
     return out
 
+def fetch_20four7va():
+    """Read 20four7VA's public Breezy HR jobs feed, including all engagement types."""
+    rows = get_json("https://20four7va.breezy.hr/json")
+    if not isinstance(rows, list):
+        raise ValueError("20four7VA public jobs feed did not return a JSON list")
+    out = []
+    for j in rows:
+        if not isinstance(j, dict):
+            continue
+        title = j.get("name") or j.get("title") or ""
+        url = j.get("url") or ""
+        loc_parts = []
+        location = j.get("location")
+        if isinstance(location, dict):
+            loc_parts.extend(str(v) for v in location.values() if v not in (None, "", [], {}))
+        elif location:
+            loc_parts.append(str(location))
+        for loc in (j.get("locations") or []):
+            if isinstance(loc, dict):
+                loc_parts.extend(str(v) for v in loc.values() if v not in (None, "", [], {}))
+            elif loc:
+                loc_parts.append(str(loc))
+        remote_details = str(j.get("remote_details") or "")
+        # Breezy's unrestricted "remote" flag means worldwide; location-limited
+        # remote roles still have to pass our explicit Egypt/Africa location check.
+        if j.get("is_remote") and remote_details.strip().lower() == "remote":
+            location_text = "Worldwide"
+        else:
+            location_text = " ".join(loc_parts)
+            if remote_details:
+                location_text += " " + remote_details
+        job_type = j.get("type") or ""
+        if isinstance(job_type, dict):
+            job_type = job_type.get("name") or job_type.get("label") or ""
+        item = record(
+            "20four7VA", title, "20four7VA", url, location_text, "",
+            j.get("published_date") or j.get("publishedDate") or "",
+            j.get("department") or "Virtual Assistance / Customer Support",
+            job_type, j.get("salary") or "", "https://20four7va.breezy.hr/",
+            j.get("id") or j.get("friendly_id")
+        )
+        if item:
+            item["candidate_required_location"] = clean_text(location_text).strip()
+            out.append(item)
+    return out
+
+
 def check_link(job):
     try:
         r = requests.get(job["url"], headers=HEADERS, timeout=12, allow_redirects=True, stream=True)
@@ -444,7 +491,8 @@ def main():
         {"name":"Remote OK","url":"https://remoteok.com/","api":"https://remoteok.com/api","note":"Free public JSON feed. Remote OK is credited and every listing links to its original post; explicit eligible locations only."},
         {"name":"Remotive","url":"https://remotive.com/","api":"https://remotive.com/api/remote-jobs","note":"Public API, refreshed once daily (within its recommended limit of 4 requests/day); 24-hour feed delay. Direct Remotive job/source links are retained."},
         {"name":"Working Nomads","url":"https://www.workingnomads.com/jobs","api":"https://www.workingnomads.com/api/exposed_jobs/","note":"Public jobs feed linked from its site API page; only explicit Egypt, Africa, or worldwide locations are included."},
-        {"name":"Wing Assistant","url":"https://jobs.lever.co/getwingapp","api":"https://api.lever.co/v0/postings/getwingapp?mode=json","note":"Public Lever postings feed from the source listed in the supplied sheet; only explicit eligible locations are included."}
+        {"name":"Wing Assistant","url":"https://jobs.lever.co/getwingapp","api":"https://api.lever.co/v0/postings/getwingapp?mode=json","note":"Public Lever postings feed from the source listed in the supplied sheet; only explicit eligible locations are included."},
+        {"name":"20four7VA","url":"https://20four7va.breezy.hr/","api":"https://20four7va.breezy.hr/json","note":"Public Breezy HR feed checked daily. Includes part-time, full-time, contract, temporary and other openings; only Egypt, Africa, or unrestricted worldwide remote eligibility is included."}
     ]
     collected, errors = [], []
     project_jobs = []
@@ -455,7 +503,8 @@ def main():
         ("Remote OK", fetch_remoteok),
         ("Remotive", fetch_remotive),
         ("Working Nomads", fetch_working_nomads),
-        ("Wing Assistant", fetch_wing_assistant)
+        ("Wing Assistant", fetch_wing_assistant),
+        ("20four7VA", fetch_20four7va)
     ]:
         try:
             batch = fn()
